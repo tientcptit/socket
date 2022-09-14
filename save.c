@@ -42,6 +42,6 @@ int main()
     system("clear");
 
     char pad[50] = "Pushed to Github at ";
-    printf(BLU "%s" RESET, pad);
+    printf(GRN "%s" RESET, pad);
     printf(YEL "%s\n" RESET, tim);
 }
