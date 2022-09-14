@@ -30,16 +30,15 @@ int main()
     }
     printf("Connected to server via port %d\n", PORT);
 
-    int i, loop = 10;
-    char *msg = "msg ";
+    int i, loop = 3;
+    char *msg = "This is client msg ";
     for (i = 0; i < loop; i++)
     {
         memset(send_buf, 0, sizeof(send_buf));
         char c = i;
         strcat(send_buf, msg);
         strncat(send_buf, &c, 1);
-        printf("client-to-server: ");
-        fgets(send_buf, sizeof(send_buf), stdin);
+        printf("client-to-server: %s\n", send_buf);
         int bytes_send = send(sockfd, send_buf, sizeof(send_buf), 0);
         if (bytes_send == -1)
         {
