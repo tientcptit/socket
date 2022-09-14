@@ -40,7 +40,6 @@ int main()
     system(buf1);
     system("git push");
     system("clear");
-    printf("%s\n", buf1);
 
     char pad[50] = "Pushed to Github at ";
     strcat(pad, tim);
