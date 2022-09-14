@@ -39,7 +39,7 @@ int main()
     system("git add .");
     system(buf1);
     system("git push");
-    // system("clear");
+    system("clear");
 
     char pad[50] = "Pushed to Github at ";
     printf(RED "%s " RESET, pad);
