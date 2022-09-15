@@ -12,8 +12,8 @@
 #include <sys/wait.h>
 #include <pthread.h>
 
-#define PORT 8888
-#define BUF_SIZE 4096
+#define PORT 8989
+#define BUF_SIZE 1024
 
 #define RED "\x1B[31m"
 #define GRN "\x1B[32m"

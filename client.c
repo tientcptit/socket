@@ -32,7 +32,7 @@ int main()
         perror("Socket");
         exit(0);
     }
-    printf("Socket is created!!!\n");
+    printf("Socket is created!\n");
 
     int enable = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
@@ -43,10 +43,10 @@ int main()
         perror("Connect");
         exit(0);
     }
-    printf("Connected to server via port %d!!!\n", PORT);
+    printf("Connected to server via port %d!\n", PORT);
 
-    int i, loop = 3;
-    for (i = 0; i < 1; i++)
+    int i, loop = 1;
+    for (i = 0; i < loop; i++)
     {
         memset(recv_buf, 0, sizeof(recv_buf));
         read(sockfd, recv_buf, sizeof(recv_buf));
@@ -64,7 +64,7 @@ int main()
         memset(recv_buf, 0, sizeof(recv_buf));
         read(sockfd, recv_buf, sizeof(recv_buf));
         printf("Server replied %s\n", recv_buf);
-        printf("Login status: Sucessfully!!\n");
+        printf("Login status: Sucessfully!\n");
         printf("==============================\n");
 
         // choise
