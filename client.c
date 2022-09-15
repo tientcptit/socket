@@ -34,6 +34,9 @@ int main()
     }
     printf("Socket is created!!!\n");
 
+    int enable = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+
     int stt = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (stt == -1)
     {
@@ -43,8 +46,7 @@ int main()
     printf("Connected to server via port %d!!!\n", PORT);
 
     int i, loop = 3;
-    char *msg = "This is client msg ";
-    for (i = 0; i < loop; i++)
+    for (i = 0; i < 1; i++)
     {
         memset(recv_buf, 0, sizeof(recv_buf));
         read(sockfd, recv_buf, sizeof(recv_buf));
@@ -54,10 +56,11 @@ int main()
         read(sockfd, recv_buf, sizeof(recv_buf));
         strcpy(pass_send, recv_buf);
 
+        // printf("%s - %s", name_send, pass_send);
+
         write(sockfd, name_send, strlen(name_send));
         write(sockfd, pass_send, strlen(pass_send));
 
-        printf("==============================\n");
         memset(recv_buf, 0, sizeof(recv_buf));
         read(sockfd, recv_buf, sizeof(recv_buf));
         printf("Server replied %s\n", recv_buf);
@@ -73,13 +76,12 @@ int main()
         memset(send_buf, 0, sizeof(send_buf));
         int choise = rand_int();
         snprintf(send_buf, sizeof(send_buf), "%d", choise);
+        printf("Client choise: %s\n", send_buf);
         write(sockfd, send_buf, strlen(send_buf));
 
         memset(recv_buf, 0, sizeof(recv_buf));
         read(sockfd, recv_buf, sizeof(recv_buf));
 
-        memset(recv_buf, 0, sizeof(recv_buf));
-        read(sockfd, recv_buf, sizeof(recv_buf));
         float point = atof(recv_buf);
         printf("Point of %s is %.2f\n", name_send, point);
         printf("==============================\n");

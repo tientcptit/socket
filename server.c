@@ -1,6 +1,6 @@
 #include "myheader.h"
 
-#define MAX_STUDENT 3
+#define MAX_STUDENT 10
 #define MAX_LEN 100
 
 typedef struct students
@@ -98,6 +98,7 @@ int user_auth(char *username_recv, char *password_recv, int *loc)
 }
 int main()
 {
+    data_init();
     srand((unsigned int)time(NULL));
     int listenfd, connfd;
     struct sockaddr_in server_addr, client_addr;
@@ -125,7 +126,10 @@ int main()
         perror("Socket");
         exit(1);
     }
-    printf("Socket is created!!!\n");
+    printf("Socket is created!\n");
+
+    int enable = 1;
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 
     int bind_stt = bind(listenfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (bind_stt == -1)
@@ -140,10 +144,12 @@ int main()
         perror("Listen");
         exit(1);
     }
-    printf("Listening connection!!!\n");
-    printf("==================================================\n");
+    printf("Listening connection!\n");
+    printf("==============================\n");
 
-    while (1)
+    int max = 3;
+    int j = 0;
+    while (j < max)
     {
         pthread_arg = (pthread_arg_t *)malloc(sizeof(*pthread_arg));
 
@@ -158,12 +164,13 @@ int main()
         printf("Connection accepted from %s:%d\n", cl_addr, cl_port);
 
         int i, loop = 3;
-        for (i = 0; i < loop; i++)
+        for (i = 0; i < 1; i++)
         {
             // Sent username and pass to client
             int rand_value = rand_int();
             memset(send_buf, 0, sizeof(send_buf));
             strcpy(send_buf, student[rand_value].username);
+            // printf("%s\n", send_buf);
             bytes_send = write(connfd, send_buf, strlen(send_buf));
             if (bytes_send < 0)
             {
@@ -171,18 +178,20 @@ int main()
             }
             memset(send_buf, 0, sizeof(send_buf));
             strcpy(send_buf, student[rand_value].password);
-            bytes_send = send(connfd, send_buf, sizeof(send_buf), 0);
+            // printf("%s\n", send_buf);
+            bytes_send = write(connfd, send_buf, strlen(send_buf));
             if (bytes_send < 0)
             {
                 printf(RED "Sent password to [UID=%d] failed...\n" RESET, cl_port);
             }
-            printf("Sent username and password to [UID=%d] sucessfully!!!\n", cl_port);
+            printf("Sent username and password to [UID=%d] sucessfully!\n", cl_port);
+            printf("==============================\n");
 
             // receive user name and pass from cliet and author
             memset(name_recv, 0, sizeof(name_recv));
             memset(pass_recv, 0, sizeof(pass_recv));
-            recv(connfd, name_recv, sizeof(name_recv), 0);
-            recv(connfd, pass_recv, sizeof(pass_recv), 0);
+            read(connfd, name_recv, sizeof(name_recv));
+            read(connfd, pass_recv, sizeof(pass_recv));
 
             if (name_recv[strlen(name_recv) - 1] == '\n')
             {
@@ -195,20 +204,19 @@ int main()
             if (user_auth(name_recv, pass_recv, &loc) == 1)
             {
                 // login successfully and send status to client
-                printf("[UID=%d]: Logged in successfully!!!\n", cl_port);
-                printf("===================================\n");
+                printf("[UID=%d]: Logged in successfully!\n", cl_port);
                 memset(send_buf, 0, sizeof(send_buf));
                 strcpy(send_buf, "ok");
-                send(connfd, send_buf, strlen(send_buf), 0);
+                write(connfd, send_buf, strlen(send_buf));
 
                 // send choise to client
-                char success_msg[110] = "\nEnter your option:\n  1. Math point\n  2. Physics point\n  3. Chemistry point\n";
-                printf("==================================================\n");
+                char success_msg[125] = "Enter your option:\n 1. Maths\n 2. Physics\n 3. Chemistry\n 4. Biology\n 5. History\n 6. Geography\n 7. English\n 8. Literature\n";
+                printf("==============================\n");
                 write(connfd, success_msg, strlen(success_msg));
 
                 // recv client choise
                 memset(recv_buf, 0, sizeof(recv_buf));
-                recv(connfd, recv_buf, sizeof(connfd), 0);
+                read(connfd, recv_buf, sizeof(connfd));
 
                 // detect client choise and send request
                 if (strcmp(recv_buf, "1") == 0)
@@ -217,9 +225,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].maths, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "2") == 0)
                 {
@@ -227,9 +235,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].physics, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "3") == 0)
                 {
@@ -237,9 +245,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].chemistry, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "4") == 0)
                 {
@@ -247,9 +255,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].biology, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "5") == 0)
                 {
@@ -257,9 +265,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].history, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "6") == 0)
                 {
@@ -267,9 +275,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].geography, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "7") == 0)
                 {
@@ -277,9 +285,9 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].english, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else if (strcmp(recv_buf, "8") == 0)
                 {
@@ -287,14 +295,14 @@ int main()
 
                     memset(send_buf, 0, sizeof(send_buf));
                     gcvt(student[loc].literature, 4, send_buf);
-                    send(connfd, send_buf, strlen(send_buf), 0);
-                    printf("[UID=%d]: Sent data successfully!!!\n", cl_port);
-                    printf("==================================================\n");
+                    write(connfd, send_buf, strlen(send_buf));
+                    printf("[UID=%d]: Sent data successfully!\n", cl_port);
+                    printf("==============================\n");
                 }
                 else
                 {
                     printf("[UID=%d]: Something was wrong...\n", cl_port);
-                    printf("==================================================\n");
+                    printf("==============================\n");
                 }
                 break;
             }
@@ -308,7 +316,11 @@ int main()
                 send(connfd, send_buf, strlen(send_buf), 0);
             }
         }
-        printf("==================================================\n");
+        j++;
+        if (j == max)
+        {
+            break;
+        }
     }
 
     close(connfd);
