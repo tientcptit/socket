@@ -24,3 +24,5 @@
 #define CYN "\x1B[36m"
 #define WHT "\x1B[37m"
 #define RESET "\x1B[0m"
+
+#define sleep_time_ms 0.1 * 1000000

@@ -3,8 +3,6 @@
 
 char time_buf[20];
 
-#define sleep_time_ms 0.5 * 1000000
-
 typedef struct pthread_arg_t
 {
     int connfd;
@@ -41,6 +39,11 @@ int main()
     server_addr.sin_port = htons(PORT);
 
     printf(YEL "Starting simulation!!!\n" RESET);
+    if (listenfd < 0)
+    {
+        perror("Socket");
+        exit(1);
+    }
     printf("Socket is created at ");
     printf(YEL "%s\n" RESET, sock_time);
 
@@ -65,6 +68,8 @@ int main()
     client_addr_size = sizeof(struct sockaddr_in);
     while (1)
     {
+        pthread_arg = (pthread_arg_t *)malloc(sizeof(*pthread_arg));
+
         connfd = accept(listenfd, (struct sockaddr *)&client_addr, &client_addr_size);
         char *acc_time = get_time();
         if (connfd < 0)
@@ -75,10 +80,12 @@ int main()
 
         char *cl_addr = inet_ntoa(client_addr.sin_addr);
         int cl_port = ntohs(client_addr.sin_port);
+
         pthread_arg->client_addr = client_addr;
         pthread_arg->connfd = connfd;
 
-        printf("Connection accepted from %s:%d at %s\n", cl_addr, cl_port, acc_time);
+        printf("Connection accepted from %s:%d at ", cl_addr, cl_port);
+        printf(YEL "%s\n" RESET, acc_time);
         int thread_val = pthread_create(&tid, 0, connected_thread_func, (void *)pthread_arg);
         if (thread_val != 0)
         {
@@ -91,10 +98,10 @@ int main()
 void *get_time()
 {
     time_t t;
-    struct tm *tm_info;
+    struct tm *timex;
     t = time(NULL);
-    tm_info = localtime(&t);
-    strftime(time_buf, 20, "%H:%M:%S", tm_info);
+    timex = localtime(&t);
+    strftime(time_buf, 20, "%H:%M:%S", timex);
     return time_buf;
 }
 
@@ -108,8 +115,25 @@ void *connected_thread_func(void *arg)
     char send_buf[BUF_SIZE];
     char recv_buf[BUF_SIZE];
 
+    memset(send_buf, 0, sizeof(send_buf));
+    strcpy(send_buf, "Hello from gNB");
     struct timeval begin, end;
     int loop = 0;
+    gettimeofday(&begin, NULL);
+    char *start_time = get_time();
+    printf("Start sending data to UE at %s\n", start_time);
+    while (loop < 5)
+    {
+        write(connfd, send_buf, strlen(send_buf));
+        usleep(sleep_time_ms);
+        loop++;
+    }
+    gettimeofday(&end, NULL);
+    char *end_time = get_time();
+    long time_exec = (end.tv_sec - begin.tv_sec) * 1000.0;
+    time_exec += (end.tv_usec - begin.tv_usec) / 1000.0;
+    printf("Finished sending to UE at %s \n", end_time);
+    printf("Time spent in execution %ld ms\n", time_exec);
 }
 /*
 struct timeval begin, end;
