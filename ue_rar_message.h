@@ -34,4 +34,4 @@ struct MSG1
     int ra_RNTI;
 };
 
-struct MSG1 msg1 = {preamble_Generator(), ra_RNTI_Generator()};
+struct MSG1 msg1;

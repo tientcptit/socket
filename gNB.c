@@ -1,5 +1,4 @@
 #include "gnb_message.h"
-#include "myheader.h"
 
 char time_buf[20];
 
@@ -120,17 +119,22 @@ void *connected_thread_func(void *arg)
     gettimeofday(&begin, NULL);
     char *start_time = get_time();
 
-    srand(time(NULL));
-    struct MIB mib = {(-1) * (50 + rand() % 50), "101010", "scs15or69", 15, 1, "not!Barred"};
+    // srand(time(NULL));
+    // struct MIB mib = {(-1) * (50 + rand() % 50), "101010", "scs15or69", 15, 1, "not!Barred"};
+    // struct BEAM beam = {-50, {pading, {300}, {3}, {10, -60}, {-100, "101010", "scs15or69", 15, 1, "notBarred"}}};
     struct SIB1 sib1 = {pading,
                         {q_rxlevmin, q_rxlevminoffset},
                         {pading, {pading, {MCC, MNC}}},
                         {pading, {pading, {pading, {totalnumberofra_preambles, {prach_configurationindex, msg1_frequencystart, preamblereceivedtargetpower, preambletransmax}}}}}};
 
     printf("Started sending data to UE at %s\n", start_time);
+    srand(time(NULL));
     while (loop < 5)
     {
-        sendto(connfd, &mib, sizeof(mib), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        int pow_rand = (-1) * (50 + rand() % 50);
+
+        struct BEAM beam = {pow_rand, {pading, {n_id_2}, {n_id_1}, {ssb_index, rsrp}, {systemframenumber, susubcarrierspacingcommon, ssb_subcarrieroffset, pdcch_configsib1, cellbarred}}};
+        sendto(connfd, &beam, sizeof(beam), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         sendto(connfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         usleep(sleep_time_ms);
         loop++;
@@ -143,22 +147,3 @@ void *connected_thread_func(void *arg)
     printf("Time spent in execution %ld ms\n", time_exec);
     printf("==============================\n");
 }
-
-/*
-struct timeval begin, end;
-int i = 0;
-gettimeofday(&begin, NULL);
-dis_time();
-while (i < 10)
-{
-    cout << i << " ";
-    usleep(1 * 1000000);
-    i++;
-}
-cout << endl;
-dis_time();
-gettimeofday(&end, NULL);
-long seconds = (end.tv_sec - begin.tv_sec) * 1000.0;
-seconds += (end.tv_usec - begin.tv_usec) / 1000.0;
-cout << "Elapsed time is " << YEL << seconds << RESET << " ms" << endl;
-*/
