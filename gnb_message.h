@@ -9,14 +9,18 @@
 #define q_rxlevminoffset -80
 #define pading 0
 
+#pragma pack(1)
 struct MIB
 {
+
+    int power;
     char systemFrameNumber[7];
     char subCarrierSpacingCommon[10];
     int ssb_SubcarrierOffset;
     int pdcch_ConfigSIB1;
     char cellBarred[10];
-} MIB = {"101010", "scs15or69", 15, 1, "notBarred"};
+} MIB;
+#pragma pack(0)
 
 struct RACH_ConfigGeneric
 {
@@ -74,13 +78,13 @@ struct cellSelectionInfo
     int q_RxLevMinOffset;
 };
 
+#pragma pack(1)
 struct SIB1
 {
     int sib1_pad;
     struct cellSelectionInfo cell_selection_info;
     struct cellAccessRelatedInfo cell_access_related_info;
     struct ServingCellConfigCommonSIB serving_cell_config_common_sib;
-} SIB1 = {pading,
-          {q_rxlevmin, q_rxlevminoffset},
-          {pading, {pading, {MCC, MNC}}},
-          {pading, {pading, {pading, {totalnumberofra_preambles, {prach_configurationindex, msg1_frequencystart, preamblereceivedtargetpower, preambletransmax}}}}}};
+} SIB1;
+
+#pragma pack(1)

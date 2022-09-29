@@ -1,8 +1,6 @@
 #include "myheader.h"
-#include "message.h"
-
-char time_buf[20];
-void *get_time();
+#include "ue_message.h"
+#include "basic_func.h"
 
 int main()
 {
@@ -30,37 +28,39 @@ int main()
         perror("Connect");
         exit(0);
     }
-    printf("Connected to server via port %d!\n", PORT);
+    printf("Connected to server via port %d\n", PORT);
 
+    struct MIB mib;
+    struct SIB1 sib1;
     int loop = 0;
     struct timeval begin, end;
+    socklen_t server_addr_len = sizeof(struct sockaddr_in);
     gettimeofday(&begin, NULL);
     char *start_time = get_time();
-    printf("Reading from gNB at %s\n", start_time);
+    printf(YEL "Reading from gNB at %s\n" RESET, start_time);
     while (loop < 5)
     {
         memset(recv_buf, 0, sizeof(recv_buf));
-        read(sockfd, recv_buf, sizeof(recv_buf));
-        char *recv_time = get_time();
-        loop++;
+
+        recvfrom(sockfd, &mib, sizeof(mib), 0, (struct sockaddr *)&server_addr, &server_addr_len);
+        usleep(sleep_time_ms / 10);
+        recvfrom(sockfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&server_addr, &server_addr_len);
         usleep(sleep_time_ms);
-        printf("Message from gNB: %s at %s\n", recv_buf, recv_time);
+        loop++;
+
+        printf("MIB from gNB: %d %s (%s)\n", atoi(mib.systemFrameNumber), mib.cellBarred, cell_State(mib.cellBarred));
+        printf("SIB1 from gNB: %d %d %d %d\n", sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.prach_ConfigurationIndex,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.msg1_FrequencyStart,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleReceivedTargetPower,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleTransMax);
     }
     gettimeofday(&end, NULL);
     char *end_time = get_time();
     long time_exec = (end.tv_sec - begin.tv_sec) * 1000.0;
     time_exec += (end.tv_usec - begin.tv_usec) / 1000.0;
-    printf("Finished reading from gNB at %s \n", end_time);
+    printf(YEL "Finished reading from gNB at %s \n" RESET, end_time);
     printf("Time spent in execution %ld ms\n", time_exec);
-    return 0;
-}
+    printf("==============================\n");
 
-void *get_time()
-{
-    time_t t;
-    struct tm *tm_info;
-    t = time(NULL);
-    tm_info = localtime(&t);
-    strftime(time_buf, 20, "%H:%M:%S", tm_info);
-    return time_buf;
+    return 0;
 }

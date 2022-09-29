@@ -1,4 +1,4 @@
-#include "message.h"
+#include "gnb_message.h"
 #include "myheader.h"
 
 char time_buf[20];
@@ -14,8 +14,6 @@ void *connected_thread_func(void *arg);
 
 int main()
 {
-    struct MIB;
-    struct SIB1;
     // printf("UE would transmit at SFN: %s\n", MIB.systemFrameNumber);
     // printf("Cell Status: %s\n", MIB.cellBarred);
     // printf("Mobile Country Code : %s\n", SIB1.cell_access_related_info.plmn_identitylist.plmn_identity.mcc);
@@ -121,10 +119,19 @@ void *connected_thread_func(void *arg)
     int loop = 0;
     gettimeofday(&begin, NULL);
     char *start_time = get_time();
-    printf("Start sending data to UE at %s\n", start_time);
+
+    srand(time(NULL));
+    struct MIB mib = {(-1) * (50 + rand() % 50), "101010", "scs15or69", 15, 1, "not!Barred"};
+    struct SIB1 sib1 = {pading,
+                        {q_rxlevmin, q_rxlevminoffset},
+                        {pading, {pading, {MCC, MNC}}},
+                        {pading, {pading, {pading, {totalnumberofra_preambles, {prach_configurationindex, msg1_frequencystart, preamblereceivedtargetpower, preambletransmax}}}}}};
+
+    printf("Started sending data to UE at %s\n", start_time);
     while (loop < 5)
     {
-        write(connfd, send_buf, strlen(send_buf));
+        sendto(connfd, &mib, sizeof(mib), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        sendto(connfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         usleep(sleep_time_ms);
         loop++;
     }
@@ -132,9 +139,11 @@ void *connected_thread_func(void *arg)
     char *end_time = get_time();
     long time_exec = (end.tv_sec - begin.tv_sec) * 1000.0;
     time_exec += (end.tv_usec - begin.tv_usec) / 1000.0;
-    printf("Finished sending to UE at %s \n", end_time);
+    printf(YEL "Finished sending to UE at %s \n" RESET, end_time);
     printf("Time spent in execution %ld ms\n", time_exec);
+    printf("==============================\n");
 }
+
 /*
 struct timeval begin, end;
 int i = 0;

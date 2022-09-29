@@ -1,3 +1,5 @@
+#define sleep_time_ms 0.01 * 1000000
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,6 +7,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -13,8 +16,8 @@
 #include <sys/wait.h>
 #include <pthread.h>
 
-#define PORT 8989
-#define BUF_SIZE 1024
+#define PORT 6969
+#define BUF_SIZE 4096
 
 #define RED "\x1B[31m"
 #define GRN "\x1B[32m"
@@ -24,5 +27,3 @@
 #define CYN "\x1B[36m"
 #define WHT "\x1B[37m"
 #define RESET "\x1B[0m"
-
-#define sleep_time_ms 0.1 * 1000000
