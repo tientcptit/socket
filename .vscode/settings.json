@@ -3,6 +3,7 @@
     "files.associations": {
         "iostream": "cpp",
         "cmath": "c",
-        "ostream": "c"
+        "ostream": "c",
+        "socket.h": "c"
     }
 }
