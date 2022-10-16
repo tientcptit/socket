@@ -115,7 +115,7 @@ void *recv_MIB_func(void *arg)
     {
         for (int j = 0; j < 7; j++)
         {
-            recvfrom(sockfd, &mib, sizeof(mib), 0, (struct sockaddr *)&server_addr, &server_addr_sz);
+            recvfrom(sockfd, &mib, sizeof(mib), MSG_WAITALL, (struct sockaddr *)&server_addr, &server_addr_sz);
             beam_rcv[i].mib_rcv[j].pow_rcv = mib.pow;
             beam_rcv[i].mib_rcv[j].SFN_rcv = mib.SFN;
         }
@@ -132,7 +132,8 @@ void *recv_MIB_func(void *arg)
             max_index = j;
         }
     }
-    printf(YEL "\nBest pair of beam: [%d and %d]\n" RESET, beam_rcv[0].mib_rcv[max_index].pow_rcv, beam_rcv[0].mib_rcv[max_index].SFN_rcv);
+    printf("\n");
+    // printf(YEL "\nBest pair of beam: [%d and %d]\n" RESET, beam_rcv[0].mib_rcv[max_index].pow_rcv, beam_rcv[0].mib_rcv[max_index].SFN_rcv);
 }
 
 void *recv_SIB1_func(void *arg)
@@ -149,11 +150,12 @@ void *recv_SIB1_func(void *arg)
     printf(YEL "5 SIB1 received: " RESET);
     for (int i = 0; i < 5; i++)
     {
-        recvfrom(sockfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&server_addr, &server_addr_sz);
+        recvfrom(sockfd, &sib1, sizeof(sib1), MSG_WAITALL, (struct sockaddr *)&server_addr, &server_addr_sz);
         sib1_rcv[i].PRACH_Index_rcv = sib1.PRACH_Index;
         printf("[%d] ", sib1_rcv[i].PRACH_Index_rcv);
     }
-    printf(YEL "\nThe first SIB1:  [%d]\n", sib1_rcv[0].PRACH_Index_rcv);
+    printf("\n");
+    // printf(YEL "\nThe first SIB1:  [%d]\n", sib1_rcv[0].PRACH_Index_rcv);
 }
 
 void *main_handler(void *arg)
@@ -162,8 +164,6 @@ void *main_handler(void *arg)
     int sockfd = pthread_arg->sockfd;
 
     struct sockaddr_in server_addr = pthread_arg->server_addr;
-    char buf[2000];
-
     socklen_t server_addr_sz = sizeof(struct sockaddr_in);
 
     MSG2 msg2;
@@ -173,9 +173,9 @@ void *main_handler(void *arg)
     MSG4_RCV msg4_rcv;
 
     MSG1 msg1 = {12345};
-    sendto(sockfd, &msg1, sizeof(msg1), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    sendto(sockfd, &msg1, sizeof(msg1), MSG_CONFIRM, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-    recvfrom(sockfd, &msg2, sizeof(msg2), 0, (struct sockaddr *)&server_addr, &server_addr_sz);
+    recvfrom(sockfd, &msg2, sizeof(msg2), MSG_WAITALL, (struct sockaddr *)&server_addr, &server_addr_sz);
     msg2_rcv.RAPID_RCV = msg2.RAPID;
     msg2_rcv.TC_RNTI_RCV = msg2.TC_RNTI;
     msg2_rcv.TimingAdvance_RCV = msg2.TimingAdvance;
@@ -219,10 +219,10 @@ int main()
     pthread_t recv_MIB, recv_SIB1, main_th;
     pthread_create(&recv_MIB, NULL, recv_MIB_func, (void *)pthread_arg);
     pthread_create(&recv_SIB1, NULL, recv_SIB1_func, (void *)pthread_arg);
-    pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
+    // pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
 
     pthread_join(recv_MIB, NULL);
     pthread_join(recv_SIB1, NULL);
-    pthread_join(main_th, NULL);
+    // pthread_join(main_th, NULL);
     return 0;
 }

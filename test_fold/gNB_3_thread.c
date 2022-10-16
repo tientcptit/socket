@@ -28,7 +28,7 @@
 
 typedef struct
 {
-    int sockfd;
+    int connfd;
     struct sockaddr_in client_addr;
 } pthread_arg_t;
 
@@ -89,121 +89,136 @@ typedef struct
 void *send_MIB_func(void *arg)
 {
     pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
-    int sockfd = pthread_arg->sockfd;
-    struct sockaddr_in server_addr = pthread_arg->server_addr;
+    int connfd = pthread_arg->connfd;
+    struct sockaddr_in client_addr = pthread_arg->client_addr;
 
-    socklen_t server_addr_sz = sizeof(struct sockaddr_in);
-
+    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
+    // srand(time(NULL));
+    printf(YEL "Sent MIB to UE: " RESET);
     for (int i = 0; i < 5; i++)
     {
         for (int j = 0; j < 7; j++)
         {
-            sendto(sockfd, &msg1, sizeof(msg1), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+            int pow_int = rand() % 90;
+            int sfn_int = rand() % 100;
+            MIB mib = {pow_int, sfn_int};
+            sendto(connfd, &mib, sizeof(mib), MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
+            if (i == 0)
+            {
+                printf("[%d and %d] ", mib.pow, mib.SFN);
+            }
         }
     }
-    int max_pow = -150;
-    int max_index = -1;
-    printf(YEL "7 SSB of the first transmission: " RESET);
-    for (int j = 0; j < 7; j++)
-    {
-        printf("[%d and %d] ", beam_rcv[0].mib_rcv[j].pow_rcv, beam_rcv[0].mib_rcv[j].SFN_rcv);
-        if (beam_rcv[0].mib_rcv[j].pow_rcv > max_pow)
-        {
-            max_pow = beam_rcv[0].mib_rcv[j].pow_rcv;
-            max_index = j;
-        }
-    }
-    printf(YEL "\nBest pair of beam: [%d and %d]\n" RESET, beam_rcv[0].mib_rcv[max_index].pow_rcv, beam_rcv[0].mib_rcv[max_index].SFN_rcv);
+    printf("\n");
 }
-
-void *recv_SIB1_func(void *arg)
+void *send_SIB1_func(void *arg)
 {
-    SIB1 sib1;
-    SIB1_RCV sib1_rcv[5];
 
     pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
-    int sockfd = pthread_arg->sockfd;
-    struct sockaddr_in server_addr = pthread_arg->server_addr;
+    int connfd = pthread_arg->connfd;
+    struct sockaddr_in client_addr = pthread_arg->client_addr;
 
-    socklen_t server_addr_sz = sizeof(struct sockaddr_in);
+    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
 
-    printf(YEL "5 SIB1 received: " RESET);
+    // srand(time(NULL));
+    printf(YEL "5 SIB1 sent: " RESET);
     for (int i = 0; i < 5; i++)
     {
-        recvfrom(sockfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&server_addr, &server_addr_sz);
-        sib1_rcv[i].PRACH_Index_rcv = sib1.PRACH_Index;
-        printf("[%d] ", sib1_rcv[i].PRACH_Index_rcv);
+        int prach_index = rand() % 100;
+        SIB1 sib1 = {prach_index};
+        sendto(connfd, &sib1, sizeof(sib1), MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        printf("[%d] ", sib1.PRACH_Index);
     }
-    printf(YEL "\nThe first SIB1:  [%d]\n", sib1_rcv[0].PRACH_Index_rcv);
+    printf("\n");
 }
 
 void *main_handler(void *arg)
 {
     pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
-    int sockfd = pthread_arg->sockfd;
+    int connfd = pthread_arg->connfd;
+    struct sockaddr_in client_addr = pthread_arg->client_addr;
 
-    struct sockaddr_in server_addr = pthread_arg->server_addr;
-    char buf[2000];
+    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
 
-    socklen_t server_addr_sz = sizeof(struct sockaddr_in);
+    MSG1 msg1;
+    MSG1_RCV msg1_rcv;
 
-    MSG2 msg2;
-    MSG2_RCV msg2_rcv;
+    MSG3 msg3;
+    MSG3_RCV msg3_rcv;
 
-    MSG4 msg4;
-    MSG4_RCV msg4_rcv;
+    recvfrom(connfd, &msg1, sizeof(msg1), MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_sz);
+    msg1_rcv.RA_Preamble_RCV = msg1.RA_Preamble;
 
-    MSG1 msg1 = {12345};
-    sendto(sockfd, &msg1, sizeof(msg1), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    MSG2 msg2 = {1111, 2222, 3333, 4444};
+    sendto(connfd, &msg2, sizeof(msg2), MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
 
-    recvfrom(sockfd, &msg2, sizeof(msg2), 0, (struct sockaddr *)&server_addr, &server_addr_sz);
-    msg2_rcv.RAPID_RCV = msg2.RAPID;
-    msg2_rcv.TC_RNTI_RCV = msg2.TC_RNTI;
-    msg2_rcv.TimingAdvance_RCV = msg2.TimingAdvance;
-    msg2_rcv.UL_grant_RCV = msg2.UL_grant;
+    recvfrom(connfd, &msg3, sizeof(msg3), MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_sz);
+    msg3_rcv.UE_ID_RCV = msg3.UE_ID;
+    strcpy(msg3_rcv.cause_RCV, msg3.cause);
 
-    MSG3 msg3 = {9999, "mo-signaling"};
-    sendto(sockfd, &msg3, sizeof(msg3), MSG_CONFIRM, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    MSG4 msg4 = {msg3_rcv.UE_ID_RCV};
+    sendto(connfd, &msg4, sizeof(msg4), MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
 
-    recvfrom(sockfd, &msg4, sizeof(msg4), MSG_WAITALL, (struct sockaddr *)&server_addr, &server_addr_sz);
-    msg4_rcv.UE_ID_RCV = msg4.UE_ID;
-
-    printf("MSG1 [SEND]: Preamble %d\n", msg1.RA_Preamble);
-    printf("MSG2 [RECV]: RAPID=%d; TA=%d; UL=%d; RNTI=%d\n", msg2_rcv.RAPID_RCV, msg2_rcv.TimingAdvance_RCV, msg2_rcv.UL_grant_RCV, msg2_rcv.TC_RNTI_RCV);
-    printf("MSG3 [SEND]: UEID=%d; cause=%s\n", msg3.UE_ID, msg3.cause);
-    printf("MSG4 [RECV]: UEID=%d\n", msg4_rcv.UE_ID_RCV);
+    printf("MSG1 [RECV]: Preamble %d\n", msg1_rcv.RA_Preamble_RCV);
+    printf("MSG2 [SEND]: RAPID=%d; TA=%d; UL=%d; RNTI=%d\n", msg2.RAPID, msg2.TimingAdvance, msg2.UL_grant, msg2.TC_RNTI);
+    printf("MSG3 [RECV]: UEID=%d; cause=%s\n", msg3_rcv.UE_ID_RCV, msg3_rcv.cause_RCV);
+    printf("MSG4 [SEND]: UEID=%d\n", msg4.UE_ID);
 }
 
 int main()
 {
-    int sockfd;
-    struct sockaddr_in server_addr;
-    pthread_arg_t *pthread_arg;
+    int listenfd, connfd;
+    struct sockaddr_in server_addr, client_addr;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    pthread_arg_t *pthread_arg;
+    pthread_t send_MIB, send_SIB1, main_th;
+    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
+
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     server_addr.sin_port = htons(8888);
+    printf("Starting simulation...\n");
 
-    int connect_val = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    if (connect_val < 0)
+    int enable = 1;
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     {
-        perror("Connect");
+        perror("Setsockopt");
         exit(1);
     }
-    printf("Connected to server via port 8888\n");
+    int bin_val = bind(listenfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    if (bin_val < 0)
+    {
+        perror("Binding");
+        exit(1);
+    }
+    listen(listenfd, 5);
+    printf("Listening incoming connection...\n");
 
-    pthread_arg = (pthread_arg_t *)malloc(sizeof(*pthread_arg));
-    pthread_arg->sockfd = sockfd;
-    pthread_arg->server_addr = server_addr;
+    while (1)
+    {
+        pthread_arg = (pthread_arg_t *)malloc(sizeof(*pthread_arg));
+        connfd = accept(listenfd, (struct sockaddr *)&client_addr, &client_addr_sz);
+        if (connfd < 0)
+        {
+            perror("Accept");
+            exit(1);
+        }
+        printf(YEL "Connection accepted from %s:%d\n" RESET, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+        pthread_arg->connfd = connfd;
+        pthread_arg->client_addr = client_addr;
 
-    pthread_t recv_MIB, recv_SIB1, main_th;
-    pthread_create(&recv_MIB, NULL, recv_MIB_func, (void *)pthread_arg);
-    pthread_create(&recv_SIB1, NULL, recv_SIB1_func, (void *)pthread_arg);
-    pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
+        pthread_create(&send_SIB1, NULL, send_SIB1_func, (void *)pthread_arg);
+        pthread_create(&send_MIB, NULL, send_MIB_func, (void *)pthread_arg);
 
-    pthread_join(recv_MIB, NULL);
-    pthread_join(recv_SIB1, NULL);
-    pthread_join(main_th, NULL);
+        // pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
+
+        // pthread_join(send_MIB, NULL);
+        // pthread_join(send_SIB1, NULL);
+        // pthread_join(main_th, NULL);
+
+        close(connfd);
+    }
+
     return 0;
 }
