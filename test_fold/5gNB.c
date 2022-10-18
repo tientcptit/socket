@@ -1,3 +1,5 @@
+#define sleep_time_ms 0.01 * 1000000
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,8 +25,23 @@
 #define BLU "\x1B[34m"
 #define MAG "\x1B[35m"
 #define CYN "\x1B[36m"
-#define WHT "\x1B[37m"
+#define WHT "\x1B[36m"
 #define RESET "\x1B[0m"
+
+#pragma pack(1)
+struct MIB
+{
+    int beam_power;
+    int SFN;
+};
+#pragma pack(0)
+
+#pragma pack(1)
+struct SIB1
+{
+    int PRACH_Index;
+};
+#pragma pack(0)
 
 typedef struct
 {
@@ -32,20 +49,20 @@ typedef struct
     struct sockaddr_in client_addr;
 } pthread_arg_t;
 
-#pragma pack(1)
 typedef struct
 {
-    int pow;
     int SFN;
-} MIB;
-#pragma pack(0)
+    int PRACH_Index;
+} pthread_msg_t;
 
-#pragma pack(1)
 typedef struct
 {
     int PRACH_Index;
-} SIB1;
-#pragma pack(0)
+    char Preamble_format[5];
+    int n_SFN;
+    int subFrame_Number;
+    int slot_Number;
+} PRACH_Config_Index;
 
 typedef struct
 {
@@ -91,48 +108,32 @@ void *send_MIB_func(void *arg)
     pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
     int connfd = pthread_arg->connfd;
     struct sockaddr_in client_addr = pthread_arg->client_addr;
+    socklen_t client_addr_len = sizeof(struct sockaddr_in);
 
-    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
-    // srand(time(NULL));
-    printf(YEL "Sent MIB to UE: " RESET);
+    printf(YEL "Sent MIB and SIB1 to UE: " RESET);
+    srand(time(NULL));
     for (int i = 0; i < 5; i++)
     {
-        for (int j = 0; j < 7; j++)
+        for (int j = 0; j < 6; j++)
         {
-            int pow_int = rand() % 90;
-            int sfn_int = rand() % 100;
-            MIB mib = {pow_int, sfn_int};
+            int pow_int = rand() % 10;
+            int sfn_int = rand() % 20;
+            struct MIB mib = {pow_int, sfn_int};
             sendto(connfd, &mib, sizeof(mib), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
-            // write(connfd, &mib, strlen(mib), ) if (i == 0)
+            if (i == 0)
             {
-                printf("[%d and %d] ", mib.pow, mib.SFN);
+                printf("[%d and %d] ", mib.beam_power, mib.SFN);
             }
         }
-    }
-    printf("\n");
-}
-void *send_SIB1_func(void *arg)
-{
-
-    pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
-    int connfd = pthread_arg->connfd;
-    struct sockaddr_in client_addr = pthread_arg->client_addr;
-
-    socklen_t client_addr_sz = sizeof(struct sockaddr_in);
-
-    // srand(time(NULL));
-    printf(YEL "5 SIB1 sent: " RESET);
-    for (int i = 0; i < 5; i++)
-    {
-        int prach_index = rand() % 100;
-        SIB1 sib1 = {prach_index};
+        int sib1_int = rand() % 2 + 70;
+        struct SIB1 sib1 = {sib1_int};
         sendto(connfd, &sib1, sizeof(sib1), 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         printf("[%d] ", sib1.PRACH_Index);
     }
     printf("\n");
 }
 
-void *main_handler(void *arg)
+void message_Handler(void *arg)
 {
     pthread_arg_t *pthread_arg = (pthread_arg_t *)arg;
     int connfd = pthread_arg->connfd;
@@ -164,14 +165,12 @@ void *main_handler(void *arg)
     printf("MSG3 [RECV]: UEID=%d; cause=%s\n", msg3_rcv.UE_ID_RCV, msg3_rcv.cause_RCV);
     printf("MSG4 [SEND]: UEID=%d\n", msg4.UE_ID);
 }
-
 int main()
 {
     int listenfd, connfd;
     struct sockaddr_in server_addr, client_addr;
 
     pthread_arg_t *pthread_arg;
-    pthread_t send_MIB, send_SIB1, main_th;
     socklen_t client_addr_sz = sizeof(struct sockaddr_in);
 
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -208,17 +207,13 @@ int main()
         pthread_arg->connfd = connfd;
         pthread_arg->client_addr = client_addr;
 
-        // pthread_create(&send_SIB1, NULL, send_SIB1_func, (void *)pthread_arg);
-        pthread_create(&send_MIB, NULL, send_MIB_func, (void *)pthread_arg);
+        pthread_t mib_tid, sib1_tid;
+        pthread_create(&mib_tid, NULL, send_MIB_func, (void *)pthread_arg);
+        message_Handler((void *)pthread_arg);
+        pthread_join(mib_tid, NULL);
 
-        // pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
-
-        // pthread_join(send_MIB, NULL);
-        // pthread_join(send_SIB1, NULL);
-        // pthread_join(main_th, NULL);
-
+        printf("---------------------------------------------------------------------------------------\n");
         close(connfd);
     }
-
     return 0;
 }

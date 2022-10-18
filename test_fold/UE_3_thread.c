@@ -218,7 +218,7 @@ int main()
 
     pthread_t recv_MIB, recv_SIB1, main_th;
     pthread_create(&recv_MIB, NULL, recv_MIB_func, (void *)pthread_arg);
-    pthread_create(&recv_SIB1, NULL, recv_SIB1_func, (void *)pthread_arg);
+    // pthread_create(&recv_SIB1, NULL, recv_SIB1_func, (void *)pthread_arg);
     // pthread_create(&main_th, NULL, main_handler, (void *)pthread_arg);
 
     pthread_join(recv_MIB, NULL);

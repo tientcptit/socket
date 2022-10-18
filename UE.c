@@ -40,6 +40,7 @@ int main()
     char *start_time = get_time();
     printf(YEL "Reading from gNB at %s\n" RESET, start_time);
     int max_power = -100;
+    printf(YEL "Beam powers received: " RESET);
     while (loop < 5)
     {
         memset(recv_buf, 0, sizeof(recv_buf));
@@ -50,17 +51,17 @@ int main()
         usleep(sleep_time_ms);
         loop++;
 
-        if (beam.beam_power > max_power)
-        {
-            max_power = beam.beam_power;
-            strcpy(ue_decoded.cellbarred_decoded, beam.ssb.pbch_data.mib.cellBarred);
-            ue_decoded.n_id_2_decoded = beam.ssb.pss.N_id_2;
-            ue_decoded.n_id_1_decoded = beam.ssb.sss.N_id_1;
-            strcpy(ue_decoded.systemframenumber_decoded, beam.ssb.pbch_data.mib.systemFrameNumber);
-            strcpy(ue_decoded.susubcarrierspacingcommon_decoded, beam.ssb.pbch_data.mib.subCarrierSpacingCommon);
-            ue_decoded.pdcch_configsib1_decoded = beam.ssb.pbch_data.mib.pdcch_ConfigSIB1;
-        }
-        printf(YEL "%d\n" RESET, beam.beam_power);
+        // if (beam.beam_power > max_power)
+        // {
+        //     max_power = beam.beam_power;
+        //     strcpy(ue_decoded.cellbarred_decoded, beam.ssb.pbch_data.mib.cellBarred);
+        //     ue_decoded.n_id_2_decoded = beam.ssb.pss.N_id_2;
+        //     ue_decoded.n_id_1_decoded = beam.ssb.sss.N_id_1;
+        //     strcpy(ue_decoded.systemframenumber_decoded, beam.ssb.pbch_data.mib.systemFrameNumber);
+        //     strcpy(ue_decoded.susubcarrierspacingcommon_decoded, beam.ssb.pbch_data.mib.subCarrierSpacingCommon);
+        //     ue_decoded.pdcch_configsib1_decoded = beam.ssb.pbch_data.mib.pdcch_ConfigSIB1;
+        // }
+        printf("[%d] ", beam.beam_power);
         // printf("beam_power = %d\npss = %d\nsss = %d\nssb_index = %d\nrsrp = %d\nsystemFrameNumber = %s\nsubCarrierSpacingCommon = %s\nssb_SubcarrierOffset = %d\npdcch_ConfigSIB1 = %d\ncellBarred = %s\n",
         //        beam.beam_power,
         //        beam.ssb.pss.N_id_2,
@@ -73,12 +74,13 @@ int main()
         //        beam.ssb.pbch_data.mib.pdcch_ConfigSIB1,
         //        beam.ssb.pbch_data.mib.cellBarred);
 
-        // printf("SIB1 from gNB: %d %d %d %d\n", sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.prach_ConfigurationIndex,
-        //        sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.msg1_FrequencyStart,
-        //        sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleReceivedTargetPower,
-        //        sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleTransMax);
+        printf("\nSIB1 from gNB: %d %d %d %d\n", sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.prach_ConfigurationIndex,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.msg1_FrequencyStart,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleReceivedTargetPower,
+               sib1.serving_cell_config_common_sib.uplink_config_common_sib.bwp_uplinkcommon.rach_configcommon.rach_configgeneric.preambleTransMax);
     }
-    printf("Max beam power %d\n", max_power);
+    printf("\n");
+    // printf("Max beam power %d\n", max_power);
     gettimeofday(&end, NULL);
     char *end_time = get_time();
     long time_exec = (end.tv_sec - begin.tv_sec) * 1000.0;

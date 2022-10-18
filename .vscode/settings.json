@@ -4,6 +4,7 @@
         "iostream": "cpp",
         "cmath": "c",
         "ostream": "c",
-        "socket.h": "c"
+        "socket.h": "c",
+        "time.h": "c"
     }
 }
