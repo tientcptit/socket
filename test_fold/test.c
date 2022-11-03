@@ -6,6 +6,9 @@ int main()
 {
     int msec = 0, trigger = 10; /* 10ms */
     clock_t before = clock();
+    usleep(1000000);
+    printf("Sending..\");
+    prin
     int iterations;
     do
     {
