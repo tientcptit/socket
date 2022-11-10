@@ -180,7 +180,7 @@ void data_Trans(void)
     send_MIB.slot = 5;
 
     send(connfd, &send_MIB, sizeof(RRC_MIB), 0);
-    printf(YEL "[DL]: gNB sent MIB = [%i; %i]\n" RESET, send_MIB.frame, send_MIB.slot);
+    printf(YEL "[DL]: gNB sent MIB = " RESET "[%d; %d]" RESET "\n" RESET, send_MIB.frame, send_MIB.slot);
     SFN = send_MIB.frame;
     SL = send_MIB.slot;
 
@@ -251,7 +251,7 @@ MSG1_Label:
     send_MSG2.Slot = 5;
     send_MSG2.Timing_Advance = 0;
     // send_MSG2.TC_RTNI = tc_RNTI();
-    send_MSG2.TC_RTNI = 89049032;
+    send_MSG2.TC_RTNI = 65519;
 MSG2_Label:
     while (1)
     {
@@ -271,7 +271,8 @@ MSG2_Label:
                 printf_Real_Time();
                 printf(YEL "[DL]: gNB sent MSG2 = " RESET "[%d; %d; %d; %d; %d]" RESET " " YEL "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, send_MSG2.RAPID, send_MSG2.SysFrame, send_MSG2.Slot, send_MSG2.Timing_Advance, send_MSG2.TC_RTNI, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG2_Send_One_Time = 1;
             }
         }
@@ -294,11 +295,11 @@ MSG2_Label:
         check_MSG1_Recv_One_Time = 0;
         rapid_reTrans++;
         printf_Real_Time();
-        printf(BLU "Trying rereceive preamble from UE: [%i]\n" RESET, rapid_reTrans);
+        printf(BLU "Trying rereceive preamble from UE: [%d]\n" RESET, rapid_reTrans);
         if (rapid_reTrans == rapid_TransMax)
         {
             printf_Real_Time();
-            printf(YEL "Stopped trying rereceive random access preamble after %i attempts\n" RESET, rapid_TransMax);
+            printf(YEL "Stopped trying rereceive random access preamble after %d attempts\n" RESET, rapid_TransMax);
             printf_Real_Time();
             printf(RED "Random acess procedure failed\n" RESET);
             printf("=================================================================\n");
@@ -328,7 +329,8 @@ MSG3_Label:
                 printf_Real_Time();
                 printf(GRN "[UL]: gNB received MSG3 = " RESET "[%d]" RESET " " GRN "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, recv_MSG3.UE_ID, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG3_Recv_One_Time = 1;
             }
         }
@@ -360,7 +362,8 @@ MSG4_Label:
 
                 printf(YEL "[DL]: gNB sent MSG4 = " RESET "[%d]" RESET " " YEL "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, send_MSG4.UE_ID, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg3 to Msg4 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg3 to Msg4 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG4_Send_One_Time = 1;
             }
         }
@@ -380,9 +383,9 @@ MSG4_Label:
     if (strcmp(cri_ACK, "1") == 0)
     {
         printf_Real_Time();
-        printf(GRN "Contention Resolution Successfully\n" RESET);
+        printf(GRN "Contention resolution identity successfully\n" RESET);
         printf_Real_Time();
-        printf(GRN "Connection Established\n" RESET);
+        printf(GRN "Connection established\n" RESET);
         printf("=================================================================\n");
         exit(EXIT_FAILURE);
     }
@@ -390,7 +393,7 @@ MSG4_Label:
     {
         prach_reTrans++;
         printf_Real_Time();
-        printf(BLU "Trying start random access procedure: [%i]\n" RESET, prach_reTrans);
+        printf(BLU "Trying start random access procedure: [%d]\n" RESET, prach_reTrans);
         check_MSG1_Recv_One_Time = 0;
         check_MSG2_Send_One_Time = 0;
         check_MSG3_Recv_One_Time = 0;
@@ -399,7 +402,7 @@ MSG4_Label:
         if (prach_reTrans == prach_TransMax)
         {
             printf_Real_Time();
-            printf(RED "Abandon the random access procedure after %i attempts\n" RESET, prach_TransMax);
+            printf(YEL "Abandon the random access procedure after %d attempts\n" RESET, prach_TransMax);
             printf_Real_Time();
             printf(RED "Contention resolution identity failed\n" RESET);
             printf_Real_Time();
@@ -419,14 +422,14 @@ void *SFN_Counter_Thread(void *arg)
     {
         if (SL < (pow(2, numerology) * 10))
         {
-            printf("Slot number: %i\n", SL);
+            printf("Slot number: %d\n", SL);
             SL++;
         }
         else
         {
             SL = 0;
-            printf(CYN "Frame number: %i\n" RESET, SFN);
-            if (SFN < 8)
+            printf(CYN "Frame number: %d\n" RESET, SFN);
+            if (SFN < 9)
             {
                 SFN++;
             }

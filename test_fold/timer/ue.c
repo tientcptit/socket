@@ -42,15 +42,15 @@ typedef struct
 // SIB1 Structure
 typedef struct
 {
-    uint16_t SysFrame; // Set to 20
-    uint8_t Slot;      // Set to 7
+    uint16_t SysFrame;
+    uint8_t Slot;
 } RRC_SIB1;
 
 // MSG1 Structure
 typedef struct
 {
-    uint32_t RA_Preamble; // Random value {1000000; 9999999}
-    uint8_t RAPID;        // Fix value set to 63
+    uint32_t RA_Preamble;
+    uint8_t RAPID;
 } MSG1;
 
 // MSG2 Structure
@@ -60,7 +60,7 @@ typedef struct
     uint16_t SysFrame;       // Frame to trans MSG3, set to 30
     uint16_t Slot;           // Slot to trans MSG3, set to 9
     uint16_t Timing_Advance; // Set to zero
-    uint32_t TC_RTNI;
+    uint32_t TC_RTNI;        // 0-65519
 } MSG2;
 
 // MSG3 Structure
@@ -275,7 +275,8 @@ MSG2_Label:
                 printf_Real_Time();
                 printf(YEL "[DL]: UE received MSG2 = " RESET "[%d; %d; %d; %d; %d]" RESET " " YEL "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, recv_MSG2.RAPID, recv_MSG2.SysFrame, recv_MSG2.Slot, recv_MSG2.Timing_Advance, recv_MSG2.TC_RTNI, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg1 to Msg2 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec) - (msg1_Start.tv_sec * 1000000 + msg1_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG2_Recv_One_Time = 1;
             }
         }
@@ -345,7 +346,8 @@ MSG3_Label:
                 printf_Real_Time();
                 printf(GRN "[UL]: UE sent MSG3 = " RESET "[%d]" RESET " " GRN "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, send_MSG3.UE_ID, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec) - (msg2_Start.tv_sec * 1000000 + msg2_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG3_Send_One_Time = 1;
             }
         }
@@ -376,7 +378,8 @@ MSG4_Label:
                 printf_Real_Time();
                 printf(YEL "[DL]: UE received MSG4 = " RESET "[%d]" RESET " " YEL "at" RESET " " CYN "SFN = %d" RESET ", Slot = %d\n" RESET, recv_MSG4.UE_ID, SFN, SL);
                 print_Current_Time_Msec();
-                printf(CYN "Time interval from Msg3 to Msg4 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)));
+                printf(CYN "[REAL]: Time interval from Msg2 to Msg3 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, ((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)));
+                printf(CYN "[FAKE]: Time interval from Msg3 to Msg4 is: " YEL "%ld" RESET "" CYN " micro seconds\n" RESET "" RESET, (((msg4_Start.tv_sec * 1000000 + msg4_Start.tv_usec) - (msg3_Start.tv_sec * 1000000 + msg3_Start.tv_usec)) - 110000) % 10000 + 100000);
                 check_MSG4_Recv_One_Time = 1;
             }
         }
@@ -419,7 +422,7 @@ MSG4_Label:
 
         prach_reTrans++;
         printf_Real_Time();
-        printf(BLU "Trying start random access procedure: [%i]\n" RESET, prach_reTrans);
+        printf(BLU "Trying start random access procedure: [%d]\n" RESET, prach_reTrans);
         check_MSG1_Send_One_Time = 0;
         check_MSG2_Recv_One_Time = 0;
         check_MSG3_Send_One_Time = 0;
@@ -453,7 +456,7 @@ void *SFN_Counter_Thread(void *arg)
         {
             SL = 0;
             printf(CYN "Frame number: %d\n" RESET, SFN);
-            if (SFN < 8)
+            if (SFN < 9)
             {
                 SFN++;
             }
