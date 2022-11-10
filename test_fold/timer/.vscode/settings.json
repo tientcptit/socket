@@ -1,5 +1,6 @@
 {
+    "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
-        "tlpi_hdr.h": "c"
+        "cmath": "c"
     }
 }
